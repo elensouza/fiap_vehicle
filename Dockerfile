@@ -23,6 +23,10 @@ RUN swift package resolve \
 # Copy entire repo into container
 COPY . .
 
+# Replace the symlink with a real file
+COPY Public/vehicle/openapi.yaml Sources/Vehicle/openapi.yaml
+COPY Public/webhook/openapi.yaml Sources/Webhook/openapi.yaml
+
 # Build the application, with optimizations, with static linking, and using jemalloc
 # N.B.: The static version of jemalloc is incompatible with the static Swift runtime.
 RUN swift build -c release \

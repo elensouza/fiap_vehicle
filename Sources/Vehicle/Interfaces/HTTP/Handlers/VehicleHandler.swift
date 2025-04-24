@@ -6,21 +6,19 @@ import FluentKit
 
 struct VehicleHandler: APIProtocol {
     private let createVehicleUseCase: CreateVehicleUseCase
-    private let getVehicleByIdUseCase: GetVehicleByIdUseCase
     private let updateVehicleUseCase: UpdateVehicleUseCase
     private let listAvailableVehiclesUseCase: ListAvailableVehiclesUseCase
     private let listSoldVehiclesUseCase: ListSoldVehiclesUseCase
     private let sellVehicleUseCase: SellVehicleUseCase
-    private let receivePaymentWebhookUseCase: ReceivePaymentWebhookUseCase
+    private let receivePaymentStatusUseCase: ReceivePaymentStatusUseCase
 
     init(repository: any VehicleRepository) {
         self.createVehicleUseCase = CreateVehicleUseCase(repository: repository)
-        self.getVehicleByIdUseCase = GetVehicleByIdUseCase(repository: repository)
         self.updateVehicleUseCase = UpdateVehicleUseCase(repository: repository)
         self.listAvailableVehiclesUseCase = ListAvailableVehiclesUseCase(repository: repository)
         self.listSoldVehiclesUseCase = ListSoldVehiclesUseCase(repository: repository)
         self.sellVehicleUseCase = SellVehicleUseCase(repository: repository)
-        self.receivePaymentWebhookUseCase = ReceivePaymentWebhookUseCase()
+        self.receivePaymentStatusUseCase = ReceivePaymentStatusUseCase(repository: repository)
     }
 
     func createVehicle(_ input: Operations.CreateVehicle.Input) async throws -> Operations.CreateVehicle.Output {
@@ -34,21 +32,6 @@ struct VehicleHandler: APIProtocol {
             return .ok(.init(body: .json(response.toResponse())))
         } catch let error as RepositoryError {
             return .unprocessableContent(.init(body: .json(.init(message: error.localizedDescription))))
-        } catch {
-            return .internalServerError(.init(body: .json(.init(message: "Unexpected error"))))
-        }
-    }
-
-    func getVehicleById(_ input: Operations.GetVehicleById.Input) async throws -> Operations.GetVehicleById.Output {
-        guard let id = UUID(uuidString: input.path.id) else {
-            return .badRequest(.init(body: .json(.init(message: "Invalid UUID format"))))
-        }
-
-        do {
-            let vehicle = try await getVehicleByIdUseCase.execute(id: id)
-            return .ok(.init(body: .json(vehicle.toResponse())))
-        } catch VehicleError.notFound, RepositoryError.entityNotFound {
-            return .notFound(.init(body: .json(.init(message: "Vehicle not found"))))
         } catch {
             return .internalServerError(.init(body: .json(.init(message: "Unexpected error"))))
         }
@@ -68,6 +51,8 @@ struct VehicleHandler: APIProtocol {
             return .ok
         } catch VehicleError.notFound, RepositoryError.entityNotFound {
             return .notFound(.init(body: .json(.init(message: "Vehicle not found"))))
+        } catch VehicleError.alreadySold {
+            return .unprocessableContent(.init(body: .json(.init(message: "Vehicle already sold"))))
         } catch let error as RepositoryError {
             return .unprocessableContent(.init(body: .json(.init(message: error.localizedDescription))))
         } catch {
@@ -110,17 +95,20 @@ struct VehicleHandler: APIProtocol {
         }
     }
 
-    func receivePaymentWebhook(_ input: Operations.ReceivePaymentWebhook.Input) async throws -> Operations.ReceivePaymentWebhook.Output {
+    func registerPaymentStatus(_ input: Operations.RegisterPaymentStatus.Input) async throws -> Operations.RegisterPaymentStatus.Output {
         guard case .json(let dto) = input.body else {
             return .badRequest(.init(body: .json(.init(message: "Invalid body"))))
         }
 
-        // TODO: Check DTO
-        _ = dto
-
         do {
-            try await receivePaymentWebhookUseCase.execute()
+            try await receivePaymentStatusUseCase.execute(payload: dto.toEntity())
             return .ok
+        } catch VehicleError.notFound {
+            return .notFound(.init(body: .json(.init(message: "Vehicle not found"))))
+        } catch VehicleError.mustStartSelling {
+            return .badRequest(.init(body: .json(.init(message: "Vehicle has not started selling yet"))))
+        } catch VehicleError.alreadySold {
+            return .conflict(.init(body: .json(.init(message: "Vehicle already sold"))))
         } catch {
             return .internalServerError(.init(body: .json(.init(message: "Unexpected error"))))
         }

@@ -9,7 +9,7 @@ extension Vehicle {
             year: year,
             color: color,
             price: price,
-            sold: sold,
+            status: status.rawValue,
             documentBuyer: documentBuyer,
             dateSold: dateSold
         )
@@ -23,7 +23,7 @@ extension Vehicle {
             year: year,
             color: color,
             price: price,
-            sold: sold,
+            status: .init(rawValue: status.rawValue) ?? .available,
             documentBuyer: documentBuyer,
             dateSold: dateSold?.ISO8601Format()
         )
@@ -39,7 +39,7 @@ extension VehicleModel {
             year: year,
             color: color,
             price: price,
-            sold: sold,
+            status: VehicleStatus(rawValue: self.status) ?? .available,
             documentBuyer: documentBuyer,
             dateSold: dateSold
         )
@@ -55,7 +55,7 @@ extension Components.Schemas.VehiclePayload {
             year: self.year,
             color: self.color,
             price: self.price,
-            sold: false,
+            status: .available,
             documentBuyer: nil,
             dateSold: nil
         )

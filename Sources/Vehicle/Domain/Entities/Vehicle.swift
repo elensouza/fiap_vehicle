@@ -7,7 +7,12 @@ struct Vehicle {
     var year: Int
     var color: String
     var price: Double
-    var sold: Bool
+    var status: VehicleStatus
     var documentBuyer: String?
     var dateSold: Date?
+}
+
+enum VehicleStatus: String {
+    case available = "AVAILABLE"
+    case sold = "SOLD"
 }

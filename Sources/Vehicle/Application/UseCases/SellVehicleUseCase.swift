@@ -12,9 +12,7 @@ struct SellVehicleUseCase: @unchecked Sendable {
             throw VehicleError.notFound
         }
 
-        vehicle.sold = true
         vehicle.documentBuyer = payload.documentBuyer
-        vehicle.dateSold = Date()
 
         try await repository.update(vehicle)
     }

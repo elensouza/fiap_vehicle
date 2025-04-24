@@ -34,7 +34,7 @@ struct VehicleRepositoryFluent: VehicleRepository {
             model.year = vehicle.year
             model.color = vehicle.color
             model.price = vehicle.price
-            model.sold = vehicle.sold
+            model.status = vehicle.status.rawValue
             model.documentBuyer = vehicle.documentBuyer
             model.dateSold = vehicle.dateSold
 
@@ -44,15 +44,23 @@ struct VehicleRepositoryFluent: VehicleRepository {
 
     func listAvailable() async throws -> [Vehicle] {
         try await perform {
-            try await VehicleModel.query(on: db).filter(\.$sold == false).all().map { $0.toEntity() }
+            try await VehicleModel.query(on: db)
+                .filter(\.$status == VehicleStatus.available.rawValue)
+                .sort(\.$price, .ascending)
+                .all()
+                .map { $0.toEntity() }
         }
     }
 
     func listSold() async throws -> [Vehicle] {
         try await perform {
-            try await VehicleModel.query(on: db).filter(\.$sold == true).all().map {
-                $0.toEntity()
-            }
+            try await VehicleModel.query(on: db)
+                .filter(\.$status == VehicleStatus.sold.rawValue)
+                .sort(\.$price, .ascending)
+                .all()
+                .map {
+                    $0.toEntity()
+                }
         }
     }
 }

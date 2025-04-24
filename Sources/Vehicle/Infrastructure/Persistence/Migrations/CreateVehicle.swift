@@ -10,7 +10,7 @@ struct CreateVehicle: AsyncMigration {
             .field("year", .int, .required)
             .field("color", .string, .required)
             .field("price", .double, .required)
-            .field("sold", .bool, .required)
+            .field("status", .string, .required)
             .field("document_buyer", .string)
             .field("date_sold", .datetime)
             .create()

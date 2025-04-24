@@ -33,29 +33,6 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
   /vehicle/{id}:
-    get:
-      operationId: getVehicleById
-      summary: Busca um veículo pelo ID
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Veículo encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VehicleResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
     put:
       operationId: updateVehicle
       summary: Atualiza dados de um veículo existente
@@ -84,7 +61,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /vehicles:
+  /vehicles/available:
     get:
       operationId: listAvailableVehicles
       summary: Lista todos os veículos disponíveis (não vendidos)
@@ -138,21 +115,25 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /payment/webhook:
+  /vehicles/payment-status:
     post:
-      operationId: receivePaymentWebhook
-      summary: Recebe notificações de pagamento via webhook
+      operationId: registerPaymentStatus
+      summary: Atualiza status de pagamento de um veículo
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PaymentWebhookPayload'
+              $ref: '#/components/schemas/PaymentStatusPayload'
       responses:
         '200':
-          description: Webhook recebido com sucesso
+          description: Status de pagamento processado com sucesso
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -196,9 +177,9 @@ components:
         price:
           type: number
           format: double
-        sold:
-          type: boolean
-          nullable: true
+        status:
+          type: string
+          enum: [AVAILABLE, SOLD]
         documentBuyer:
           type: string
           nullable: true
@@ -226,24 +207,22 @@ components:
         - id
         - documentBuyer
 
-    PaymentWebhookPayload:
+    PaymentStatusPayload:
       type: object
       properties:
         paymentId:
           type: string
+          format: uuid
         status:
           type: string
-        price:
-          type: number
-          format: float
-        date:
+          enum: [PAID, CANCELLED]
+        receivedAt:
           type: string
           format: date-time
       required:
         - paymentId
         - status
-        - price
-        - date
+        - receivedAt
 
     ErrorResponse:
       type: object
@@ -274,6 +253,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     InternalServerError:
       description: Erro interno do servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: O veículo não está disponível devido a um conflito (já vendido ou não começou a ser vendido)
       content:
         application/json:
           schema:

@@ -22,8 +22,8 @@ final class VehicleModel: Model, @unchecked Sendable {
     @Field(key: "price")
     var price: Double
 
-    @Field(key: "sold")
-    var sold: Bool
+    @Field(key: "status")
+    var status: String
 
     @Field(key: "document_buyer")
     var documentBuyer: String?
@@ -38,7 +38,7 @@ final class VehicleModel: Model, @unchecked Sendable {
         year: Int,
         color: String,
         price: Double,
-        sold: Bool,
+        status: String,
         documentBuyer: String? = nil,
         dateSold: Date? = nil
     ) {
@@ -48,7 +48,7 @@ final class VehicleModel: Model, @unchecked Sendable {
         self.year = year
         self.color = color
         self.price = price
-        self.sold = sold
+        self.status = status
         self.documentBuyer = documentBuyer
         self.dateSold = dateSold
     }

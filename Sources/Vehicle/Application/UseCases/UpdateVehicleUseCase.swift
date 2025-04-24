@@ -12,6 +12,10 @@ struct UpdateVehicleUseCase: @unchecked Sendable {
             throw VehicleError.notFound
         }
 
+        guard vehicle.status == .available else {
+            throw VehicleError.alreadySold
+        }
+
         vehicle.brand = payload.brand
         vehicle.model = payload.model
         vehicle.year = payload.year
