@@ -7,9 +7,11 @@ func routes(_ app: Application) throws {
     let repository = PaymentRepositoryHTTP(client: app.client, logger: app.logger)
     let handler = WebhookHandler(repository: repository)
 
+    guard let url = URL(string: "/api") else { fatalError("Failed to create an URL with the string '/api'.") }
+
     try handler.registerHandlers(
         on: transport,
-        serverURL: URL(string: "/api")! // TODO: Remove force unwrap
+        serverURL: url
     )
 
     // Redirect `GET /swagger` to `GET /webhook/swagger.html`, for convenience.

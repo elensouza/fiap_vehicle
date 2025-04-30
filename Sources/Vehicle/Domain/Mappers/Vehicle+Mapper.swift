@@ -11,7 +11,8 @@ extension Vehicle {
             price: price,
             status: status.rawValue,
             documentBuyer: documentBuyer,
-            dateSold: dateSold
+            dateSold: dateSold,
+            datePayment: datePayment
         )
     }
 
@@ -22,10 +23,11 @@ extension Vehicle {
             model: model,
             year: year,
             color: color,
-            price: price,
+            price: (price as NSDecimalNumber).doubleValue,
             status: .init(rawValue: status.rawValue) ?? .available,
             documentBuyer: documentBuyer,
-            dateSold: dateSold?.ISO8601Format()
+            dateSold: dateSold?.ISO8601Format(),
+            datePayment: datePayment?.ISO8601Format()
         )
     }
 }
@@ -41,7 +43,8 @@ extension VehicleModel {
             price: price,
             status: VehicleStatus(rawValue: self.status) ?? .available,
             documentBuyer: documentBuyer,
-            dateSold: dateSold
+            dateSold: dateSold,
+            datePayment: datePayment
         )
     }
 }
@@ -54,10 +57,11 @@ extension Components.Schemas.VehiclePayload {
             model: self.model,
             year: self.year,
             color: self.color,
-            price: self.price,
+            price: Decimal(self.price),
             status: .available,
             documentBuyer: nil,
-            dateSold: nil
+            dateSold: nil,
+            datePayment: nil
         )
     }
 }

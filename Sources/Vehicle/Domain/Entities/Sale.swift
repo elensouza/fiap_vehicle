@@ -1,6 +1,6 @@
 import Foundation
 
 struct Sale {
-    let id: UUID
+    let vehicleId: UUID
     var documentBuyer: String
 }

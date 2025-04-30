@@ -32,13 +32,19 @@ COPY Public/webhook/openapi.yaml Sources/Webhook/openapi.yaml
 RUN swift build -c release \
         --product Vehicle \
         --static-swift-stdlib \
-        -Xlinker -ljemalloc
+        -Xlinker -ljemalloc & \
+    swift build -c release \
+        --product Webhook \
+        --static-swift-stdlib \
+        -Xlinker -ljemalloc & \
+    wait
 
 # Switch to the staging area
 WORKDIR /staging
 
 # Copy main executable to staging area
-RUN cp "$(swift build --package-path /build -c release --show-bin-path)/Vehicle" ./
+RUN cp "$(swift build --package-path /build -c release --show-bin-path)/Vehicle" ./ \
+ && cp "$(swift build --package-path /build -c release --show-bin-path)/Webhook" ./
 
 # Copy static swift backtracer binary to staging area
 RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./

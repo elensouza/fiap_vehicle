@@ -18,12 +18,14 @@ struct PaymentRepositoryHTTP: PaymentRepository {
 
             struct Payload: Content {
                 let paymentId: UUID
+                let vehicleId: UUID
                 let status: String
                 let receivedAt: Date
             }
 
             let body = Payload(
                 paymentId: payment.paymentId,
+                vehicleId: payment.vehicleId,
                 status: payment.status.rawValue,
                 receivedAt: payment.receivedAt
             )

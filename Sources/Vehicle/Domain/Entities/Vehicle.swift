@@ -6,10 +6,11 @@ struct Vehicle {
     var model: String
     var year: Int
     var color: String
-    var price: Double
+    var price: Decimal
     var status: VehicleStatus
     var documentBuyer: String?
     var dateSold: Date?
+    var datePayment: Date?
 }
 
 enum VehicleStatus: String {

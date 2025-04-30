@@ -20,7 +20,7 @@ final class VehicleModel: Model, @unchecked Sendable {
     var color: String
 
     @Field(key: "price")
-    var price: Double
+    var price: Decimal
 
     @Field(key: "status")
     var status: String
@@ -31,16 +31,20 @@ final class VehicleModel: Model, @unchecked Sendable {
     @Timestamp(key: "date_sold", on: .none)
     var dateSold: Date?
 
+    @Timestamp(key: "date_payment", on: .none)
+    var datePayment: Date?
+
     init(
         id: UUID? = nil,
         brand: String,
         model: String,
         year: Int,
         color: String,
-        price: Double,
+        price: Decimal,
         status: String,
         documentBuyer: String? = nil,
-        dateSold: Date? = nil
+        dateSold: Date? = nil,
+        datePayment: Date? = nil
     ) {
         self.id = id
         self.brand = brand
@@ -51,6 +55,7 @@ final class VehicleModel: Model, @unchecked Sendable {
         self.status = status
         self.documentBuyer = documentBuyer
         self.dateSold = dateSold
+        self.datePayment = datePayment
     }
 
     init() { }

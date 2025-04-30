@@ -8,7 +8,7 @@ struct ReceivePaymentStatusUseCase: @unchecked Sendable {
     }
 
     func execute(payload: Payment) async throws {
-        guard var vehicle = try await vehicleRepository.find(by: payload.paymentId) else {
+        guard var vehicle = try await vehicleRepository.find(by: payload.vehicleId) else {
             throw VehicleError.notFound
         }
 
@@ -23,11 +23,12 @@ struct ReceivePaymentStatusUseCase: @unchecked Sendable {
         switch payload.status {
         case .paid:
             vehicle.status = .sold
-            vehicle.dateSold = payload.receivedAt
+            vehicle.datePayment = payload.receivedAt
         case .cancelled:
             vehicle.status = .available
-            vehicle.dateSold = nil
             vehicle.documentBuyer = nil
+            vehicle.dateSold = nil
+            vehicle.datePayment = nil
         }
 
         try await vehicleRepository.update(vehicle)

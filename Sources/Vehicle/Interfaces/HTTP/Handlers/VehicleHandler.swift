@@ -52,7 +52,7 @@ struct VehicleHandler: APIProtocol {
         } catch VehicleError.notFound, RepositoryError.entityNotFound {
             return .notFound(.init(body: .json(.init(message: "Vehicle not found"))))
         } catch VehicleError.alreadySold {
-            return .unprocessableContent(.init(body: .json(.init(message: "Vehicle already sold"))))
+            return .conflict(.init(body: .json(.init(message: "Vehicle already sold"))))
         } catch let error as RepositoryError {
             return .unprocessableContent(.init(body: .json(.init(message: error.localizedDescription))))
         } catch {
@@ -88,8 +88,8 @@ struct VehicleHandler: APIProtocol {
             return .ok
         } catch VehicleError.notFound, RepositoryError.entityNotFound {
             return .notFound(.init(body: .json(.init(message: "Vehicle not found"))))
-        } catch let error as RepositoryError {
-            return .unprocessableContent(.init(body: .json(.init(message: error.localizedDescription))))
+        } catch VehicleError.alreadySold {
+            return .conflict(.init(body: .json(.init(message: "Vehicle already sold"))))
         } catch {
             return .internalServerError(.init(body: .json(.init(message: "Unexpected error"))))
         }

@@ -37,6 +37,7 @@ struct VehicleRepositoryFluent: VehicleRepository {
             model.status = vehicle.status.rawValue
             model.documentBuyer = vehicle.documentBuyer
             model.dateSold = vehicle.dateSold
+            model.datePayment = vehicle.datePayment
 
             try await model.update(on: db)
         }

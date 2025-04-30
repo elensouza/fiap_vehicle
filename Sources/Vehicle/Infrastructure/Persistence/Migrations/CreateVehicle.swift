@@ -9,10 +9,11 @@ struct CreateVehicle: AsyncMigration {
             .field("model", .string, .required)
             .field("year", .int, .required)
             .field("color", .string, .required)
-            .field("price", .double, .required)
+            .field("price", .sql(unsafeRaw: "NUMERIC(7,2)"), .required)
             .field("status", .string, .required)
             .field("document_buyer", .string)
             .field("date_sold", .datetime)
+            .field("date_payment", .datetime)
             .create()
     }
 

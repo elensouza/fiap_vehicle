@@ -9,13 +9,15 @@ func routes(_ app: Application) throws {
     let repository = VehicleRepositoryFluent(db: app.db, logger: app.logger)
     let handler = VehicleHandler(repository: repository)
 
+    guard let url = URL(string: "/api") else { fatalError("Failed to create an URL with the string '/api'.") }
+
     try handler.registerHandlers(
         on: transport,
-        serverURL: URL(string: "/api")! // TODO: Remove force unwrap
+        serverURL: url
     )
 
     // Redirect `GET /swagger` to `GET /vehicle/swagger.html`, for convenience.
     app.get("swagger") { req in
-        req.redirect(to: "swagger.html", redirectType: .permanent)
+        req.redirect(to: "vehicle/swagger.html", redirectType: .permanent)
     }
 }

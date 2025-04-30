@@ -1,4 +1,4 @@
-openapi: '3.1.0'
+openapi: '3.0.3'
 info:
   title: VehicleService
   version: 1.0.0
@@ -56,6 +56,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
@@ -110,8 +112,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -187,6 +189,10 @@ components:
           type: string
           format: date
           nullable: true
+        datePayment:
+          type: string
+          format: date
+          nullable: true
       required:
         - id
         - brand
@@ -198,19 +204,22 @@ components:
     SalePayload:
       type: object
       properties:
-        id:
+        vehicleId:
           type: string
           format: uuid
         documentBuyer:
           type: string
       required:
-        - id
+        - vehicleId
         - documentBuyer
 
     PaymentStatusPayload:
       type: object
       properties:
         paymentId:
+          type: string
+          format: uuid
+        vehicleId:
           type: string
           format: uuid
         status:
@@ -221,6 +230,7 @@ components:
           format: date-time
       required:
         - paymentId
+        - vehicleId
         - status
         - receivedAt
 
