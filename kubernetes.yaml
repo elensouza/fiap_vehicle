@@ -1,42 +1,40 @@
 ---
-# Persistent Volume Claim para os dados do banco de dados
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: db-data-pvc
 spec:
   accessModes:
-    - ReadWriteOnce # Defina como ReadWriteMany se vários pods precisam acessar o volume simultaneamente
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 10Gi # Ajuste o tamanho conforme necessário
+      storage: 10Gi
 
---- # Início do Deployment do banco de dados
-# Deployment para o banco de dados
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: db-deployment # Nome do Deployment
+  name: db-deployment
 spec:
-  replicas: 1 # Define o número de instâncias do pod
+  replicas: 1
   selector:
     matchLabels:
-      app: db # Rótulo usado para selecionar os pods gerenciados por este Deployment
-  template: # Define a especificação do pod
+      app: db
+  template:
     metadata:
       labels:
-        app: db # Rótulo aplicado aos pods
+        app: db
     spec:
-      volumes: # Define os volumes que o pod pode acessar
+      volumes:
         - name: db-data-volume
-          persistentVolumeClaim: # Usa um PersistentVolumeClaim para solicitar armazenamento
-            claimName: db-data-pvc # Nome do PersistentVolumeClaim a ser usado
-      containers: # Define os contêineres que serão executados dentro do pod
-        - name: db # Nome do contêiner
-          image: postgres:16-alpine # Imagem do Docker a ser usada
+          persistentVolumeClaim:
+            claimName: db-data-pvc
+      containers:
+        - name: db
+          image: postgres:16-alpine
           ports:
-            - containerPort: 5432 # Porta na qual o contêiner expõe o serviço
-          env: # Define as variáveis de ambiente para o contêiner
+            - containerPort: 5432
+          env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
             - name: POSTGRES_USER
@@ -45,30 +43,28 @@ spec:
               value: vapor_password
             - name: POSTGRES_DB
               value: vapor_database
-          volumeMounts: # Monta os volumes no contêiner
+          volumeMounts:
             - name: db-data-volume
               mountPath: /var/lib/postgresql/data/pgdata
 
---- # Fim do Deployment do banco de dados
-# Service para o banco de dados
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: db-service # Nome do Serviço
+  name: db-service
 spec:
-  selector: # Seleciona os pods aos quais este Serviço irá encaminhar o tráfego
-    app: db # Corresponde ao rótulo 'app: db' nos pods do Deployment
+  selector:
+    app: db
   ports:
-    - port: 5432 # Porta na qual o Serviço está disponível dentro do cluster
-      targetPort: 5432 # Porta para a qual o Serviço encaminha o tráfego nos pods
+    - port: 5432
+      targetPort: 5432
   type: NodePort
 
---- # Inicio do Deployment para o app service
-# Deployment para o app service
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-deployment # Nome do Deployment
+  name: app-deployment
 spec:
   replicas: 1
   selector:
@@ -77,17 +73,17 @@ spec:
   template:
     metadata:
       labels:
-        app: app # Rótulo aplicado aos pods
+        app: app
     spec:
       containers:
-        - name: app # Nome do contêiner
+        - name: app
           image: vehicle:latest
-          imagePullPolicy: IfNotPresent # Puxe a imagem somente se não estiver presente localmente
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
             - name: LOG_LEVEL
-              value: "debug" # Or use a valueFrom to get it from a ConfigMap/Secret
+              value: "debug"
             - name: DATABASE_HOST
               value: db-service
             - name: DATABASE_NAME
@@ -98,34 +94,27 @@ spec:
               value: vapor_password
           command: ["./Vehicle"]
           args: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8080"]
-          #livenessProbe:  # Add these if you want k8s to check on your pod's health
-          #  httpGet:
-          #    path: /healthz  #  Define an endpoint in your app
-          #    port: 8080
-          #  initialDelaySeconds: 5
-          #  periodSeconds: 10
---- # Fim do Deployment para o app service
-# Service para o app service
+
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-service # Nome do Serviço
+  name: app-service
 spec:
-  selector: # Seleciona os pods aos quais este Serviço irá encaminhar o tráfego
-    app: app # Rótulo usado para selecionar os pods do aplicativo
+  selector:
+    app: app
   ports:
     - protocol: TCP
-      port: 8080 # Porta na qual o Serviço está disponível dentro do cluster
-      targetPort: 8080 # Porta para a qual o Serviço encaminha o tráfego nos pods
+      port: 8080
+      targetPort: 8080
       nodePort: 30007
-  type: NodePort # Defina o tipo de Serviço como NodePort ou LoadBalancer, se necessário
+  type: NodePort
 
---- # Inicio do Deployment para o webhook service
-# Deployment para o webhook service
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: webhook-deployment # Nome do Deployment
+  name: webhook-deployment
 spec:
   replicas: 1
   selector:
@@ -139,12 +128,12 @@ spec:
       containers:
         - name: webhook
           image: vehicle:latest
-          imagePullPolicy: IfNotPresent # Puxe a imagem somente se não estiver presente localmente
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           env:
             - name: LOG_LEVEL
-              value: "debug" # Or use a valueFrom
+              value: "debug"
             - name: DATABASE_HOST
               value: db-service
             - name: DATABASE_NAME
@@ -159,32 +148,25 @@ spec:
               value: "8080"
           command: ["./Webhook"]
           args: ["serve", "--env", "production", "--hostname", "0.0.0.0", "--port", "8081"]
-          #livenessProbe: #  Add these if you want k8s to check on your pod's health
-          #  httpGet:
-          #    path: /healthz  # Define an endpoint in your app
-          #    port: 8081
-          #  initialDelaySeconds: 5
-          #  periodSeconds: 10
---- # Fim do Deployment para o webhook service
-# Service para o webhook service
+
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: webhook-service # Nome do Serviço
+  name: webhook-service
 spec:
-  selector: # Seleciona os pods
+  selector:
     app: webhook
   ports:
     - port: 8081
       targetPort: 8081
-  type: NodePort # Alterar para LoadBalancer, se necessário
+  type: NodePort
 
---- # Inicio do Job para database migrations
-# Job para database migrations
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: migrate-job # Nome do Job
+  name: migrate-job
 spec:
   template:
     spec:
@@ -198,7 +180,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: LOG_LEVEL
-              value: "debug" # Or use a valueFrom
+              value: "debug"
             - name: DATABASE_HOST
               value: db-service
             - name: DATABASE_NAME
@@ -209,15 +191,14 @@ spec:
               value: vapor_password
           command: ["./Vehicle"]
           args: ["migrate", "--yes"]
-      restartPolicy: Never # Reiniciar o contêiner apenas em caso de falha
-  backoffLimit: 0 #prevent infinite retries
+      restartPolicy: Never
+  backoffLimit: 0
 
---- # Fim do Job para database migrations
-# Job para database migrations revert
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: revert-job # Nome do Job
+  name: revert-job
 spec:
   template:
     spec:
@@ -231,7 +212,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: LOG_LEVEL
-              value: "debug" # Or use a valueFrom
+              value: "debug"
             - name: DATABASE_HOST
               value: db-service
             - name: DATABASE_NAME
@@ -242,5 +223,5 @@ spec:
               value: vapor_password
           command: ["./Vehicle"]
           args: ["migrate", "--revert", "--yes"]
-      restartPolicy: Never # Reiniciar o contêiner apenas em caso de falha
-  backoffLimit: 0 #prevent infinite retries
+      restartPolicy: Never
+  backoffLimit: 0
