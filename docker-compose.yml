@@ -60,6 +60,7 @@ services:
       <<: *shared_environment
     depends_on:
       - db
+    entrypoint: ["./Vehicle"]
     command: ["migrate", "--yes"]
     deploy:
       replicas: 0
@@ -72,6 +73,7 @@ services:
       <<: *shared_environment
     depends_on:
       - db
+    entrypoint: ["./Vehicle"]
     command: ["migrate", "--revert", "--yes"]
     deploy:
       replicas: 0
